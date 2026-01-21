@@ -12,6 +12,281 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Version and repository
+CODESTORY_VERSION="1.0.0"
+CODESTORY_REPO="https://raw.githubusercontent.com/itsBrianCreates/CodeStory/main"
+
+# ============================================================================
+# Update Functions
+# ============================================================================
+
+# Compare two semver version strings
+# Returns: 0 if v1 == v2, 1 if v1 > v2, 2 if v1 < v2
+version_compare() {
+    local v1="$1"
+    local v2="$2"
+
+    if [ "$v1" = "$v2" ]; then
+        return 0
+    fi
+
+    local IFS='.'
+    local i v1_parts=($v1) v2_parts=($v2)
+
+    # Fill empty positions with zeros
+    for ((i=${#v1_parts[@]}; i<${#v2_parts[@]}; i++)); do
+        v1_parts[i]=0
+    done
+    for ((i=${#v2_parts[@]}; i<${#v1_parts[@]}; i++)); do
+        v2_parts[i]=0
+    done
+
+    for ((i=0; i<${#v1_parts[@]}; i++)); do
+        if ((10#${v1_parts[i]} > 10#${v2_parts[i]})); then
+            return 1
+        fi
+        if ((10#${v1_parts[i]} < 10#${v2_parts[i]})); then
+            return 2
+        fi
+    done
+
+    return 0
+}
+
+# Check for available updates
+# Returns: 0 if update available, 1 if up to date, 2 if fresh install needed, 3 if offline
+check_for_updates() {
+    # Check if .codestory-version exists (indicates existing installation)
+    if [ ! -f ".codestory-version" ]; then
+        return 2  # Fresh install
+    fi
+
+    # Read local version
+    local local_version
+    local_version=$(head -n 1 .codestory-version 2>/dev/null | tr -d '[:space:]')
+
+    if [ -z "$local_version" ]; then
+        return 2  # Fresh install (corrupted version file)
+    fi
+
+    # Fetch remote version with timeout
+    local remote_version
+    remote_version=$(curl -fsSL --connect-timeout 5 --max-time 10 \
+        "${CODESTORY_REPO}/VERSION" 2>/dev/null | tr -d '[:space:]')
+
+    if [ -z "$remote_version" ]; then
+        return 3  # Offline or fetch failed
+    fi
+
+    # Compare versions
+    version_compare "$local_version" "$remote_version"
+    local result=$?
+
+    if [ $result -eq 2 ]; then
+        # Local is older than remote
+        REMOTE_VERSION="$remote_version"
+        LOCAL_VERSION="$local_version"
+        return 0  # Update available
+    fi
+
+    LOCAL_VERSION="$local_version"
+    return 1  # Up to date (or local is newer)
+}
+
+# Create backup of current files
+create_backup() {
+    local timestamp
+    timestamp=$(date +%Y%m%d-%H%M%S)
+    local backup_dir=".codestory-backup-${timestamp}"
+
+    mkdir -p "$backup_dir"
+
+    # Backup files if they exist
+    [ -f ".social-config.md" ] && cp ".social-config.md" "$backup_dir/"
+    [ -f "CLAUDE.md" ] && cp "CLAUDE.md" "$backup_dir/"
+    [ -f ".gitignore" ] && cp ".gitignore" "$backup_dir/"
+    [ -f ".codestory-version" ] && cp ".codestory-version" "$backup_dir/"
+    [ -d ".claude/skills/CodeStory" ] && cp -r ".claude/skills/CodeStory" "$backup_dir/"
+
+    echo "$backup_dir"
+}
+
+# Update the CodeStory section in CLAUDE.md (between markers)
+update_claude_section() {
+    local username="$1"
+    local claude_content="$2"
+
+    if [ ! -f "CLAUDE.md" ]; then
+        echo "$claude_content" > CLAUDE.md
+        return 0
+    fi
+
+    # Check if markers exist
+    if grep -q "CODESTORY-START" CLAUDE.md && grep -q "CODESTORY-END" CLAUDE.md; then
+        # Create temp file with updated content
+        local temp_file
+        temp_file=$(mktemp)
+
+        # Use awk to replace content between markers
+        awk -v new_content="$claude_content" '
+            /<!-- CODESTORY-START -->/ {
+                printing = 0
+                print new_content
+                next
+            }
+            /<!-- CODESTORY-END -->/ {
+                printing = 1
+                next
+            }
+            printing != 0 { print }
+            BEGIN { printing = 1 }
+        ' CLAUDE.md > "$temp_file"
+
+        mv "$temp_file" CLAUDE.md
+        return 0
+    else
+        # No markers found, append the content
+        echo "" >> CLAUDE.md
+        echo "$claude_content" >> CLAUDE.md
+        return 0
+    fi
+}
+
+# Update the SKILL.md file
+update_skill_file() {
+    local skill_content="$1"
+
+    mkdir -p .claude/skills/CodeStory
+    echo "$skill_content" > .claude/skills/CodeStory/SKILL.md
+}
+
+# Update .gitignore with new patterns
+update_gitignore_section() {
+    local patterns=("$@")
+
+    if [ ! -f ".gitignore" ]; then
+        echo "# Social media drafts (CodeStory)" > .gitignore
+        for pattern in "${patterns[@]}"; do
+            echo "$pattern" >> .gitignore
+        done
+        return 0
+    fi
+
+    # Add patterns that don't already exist
+    for pattern in "${patterns[@]}"; do
+        if ! grep -qF "$pattern" .gitignore; then
+            echo "$pattern" >> .gitignore
+        fi
+    done
+}
+
+# Write version file with metadata
+write_version_file() {
+    local version="$1"
+    local timestamp
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    cat > .codestory-version << EOF
+$version
+installed: $timestamp
+repo: $CODESTORY_REPO
+EOF
+}
+
+# Perform the smart update
+perform_update() {
+    local username="$1"
+
+    echo -e "${BLUE}Creating backup...${NC}"
+    local backup_dir
+    backup_dir=$(create_backup)
+    echo -e "  ${GREEN}✓${NC} Backup created at $backup_dir"
+
+    echo ""
+    echo -e "${BLUE}Updating CodeStory...${NC}"
+
+    # Fetch and update SKILL.md
+    local remote_skill
+    remote_skill=$(curl -fsSL --connect-timeout 5 --max-time 10 \
+        "${CODESTORY_REPO}/.claude/skills/CodeStory/SKILL.md" 2>/dev/null)
+
+    if [ -n "$remote_skill" ]; then
+        update_skill_file "$remote_skill"
+        echo -e "  ${GREEN}✓${NC} Updated .claude/skills/CodeStory/SKILL.md"
+    else
+        echo -e "  ${YELLOW}!${NC} Could not fetch SKILL.md (using local version)"
+    fi
+
+    # Update CLAUDE.md section
+    # Generate the CLAUDE.md content with username
+    local claude_content
+    claude_content='<!-- CODESTORY-START -->
+## CodeStory: Auto-Tracking & Trigger
+
+### Live Session Tracking
+
+While working on this project, automatically log notable moments to `.social-draft-'"$username"'.md`:
+
+**What to capture:**
+- Technical wins (clever solutions, performance improvements, clean refactors)
+- Progress milestones (features completed, bugs squashed, tests passing)
+- Lessons learned (debugging adventures, "aha" moments, things that surprised you)
+- Interesting decisions (architecture choices, tradeoffs you made, why you picked one approach over another)
+- Frustrations turned victories (that bug that took forever, the docs that were wrong)
+
+**Log format:**
+```
+## Session: {DATE}
+
+{TIME} - Brief note about what just happened
+- Include relevant code snippets or commands when they add context
+- Keep it casual and authentic
+- Write like you are telling a friend about your day
+```
+
+**Example entry:**
+```
+## Session: 2024-01-15
+
+2:34 PM - Finally figured out why the auth was failing. Turns out the token was being URL-encoded twice. Classic.
+
+3:15 PM - Refactored the entire validation layer. Went from 400 lines to 120. Sometimes less really is more.
+
+4:02 PM - Added rate limiting. Used a sliding window approach instead of fixed buckets. Feels cleaner.
+```
+
+### Trigger Word
+
+When the user says "CodeStory" in conversation (e.g., "run CodeStory", "let'"'"'s do CodeStory", "time for CodeStory"), run the `/CodeStory` skill to generate social media content.
+<!-- CODESTORY-END -->'
+
+    update_claude_section "$username" "$claude_content"
+    echo -e "  ${GREEN}✓${NC} Updated CodeStory section in CLAUDE.md"
+
+    # Update .gitignore with new patterns
+    update_gitignore_section ".social-draft-*.md" ".codestory-backup-*/" ".codestory-version"
+    echo -e "  ${GREEN}✓${NC} Updated .gitignore patterns"
+
+    # Write new version file
+    write_version_file "$CODESTORY_VERSION"
+    echo -e "  ${GREEN}✓${NC} Updated version to $CODESTORY_VERSION"
+
+    echo ""
+    echo -e "${GREEN}╔════════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}║         Update complete!               ║${NC}"
+    echo -e "${GREEN}╚════════════════════════════════════════╝${NC}"
+    echo ""
+    echo -e "Updated from ${YELLOW}$LOCAL_VERSION${NC} to ${GREEN}$CODESTORY_VERSION${NC}"
+    echo ""
+    echo -e "Your ${BLUE}.social-config.md${NC} has been preserved."
+    echo -e "Backup saved to: ${BLUE}$backup_dir${NC}"
+    echo ""
+}
+
+# ============================================================================
+# Main Flow
+# ============================================================================
+
 echo ""
 echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║         CodeStory installer            ║${NC}"
@@ -24,6 +299,87 @@ if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
     echo "Please run this from the root of your git project."
     exit 1
 fi
+
+# Check for updates
+check_for_updates
+update_status=$?
+
+case $update_status in
+    0)
+        # Update available
+        echo -e "${YELLOW}Update available!${NC} ($LOCAL_VERSION → $REMOTE_VERSION)"
+        echo ""
+        echo "What would you like to do?"
+        echo ""
+        echo "  1) Update (recommended) - Updates tool files, keeps your config"
+        echo "  2) Skip - Continue with current version"
+        echo "  3) Fresh install - Reconfigure everything from scratch"
+        echo ""
+        read -p "Your choice [1]: " UPDATE_CHOICE
+
+        case $UPDATE_CHOICE in
+            2)
+                echo ""
+                echo -e "${BLUE}Skipping update. Current version: $LOCAL_VERSION${NC}"
+                echo ""
+                exit 0
+                ;;
+            3)
+                echo ""
+                echo -e "${BLUE}Proceeding with fresh install...${NC}"
+                echo ""
+                # Fall through to fresh install
+                ;;
+            *)
+                # Get git username for update
+                GIT_USERNAME=$(git config user.name 2>/dev/null || echo "")
+                if [ -z "$GIT_USERNAME" ]; then
+                    read -p "Enter your name: " GIT_USERNAME
+                fi
+                perform_update "$GIT_USERNAME"
+                exit 0
+                ;;
+        esac
+        ;;
+    1)
+        # Already up to date
+        echo -e "${GREEN}CodeStory is already up to date!${NC} (v$LOCAL_VERSION)"
+        echo ""
+        echo "What would you like to do?"
+        echo ""
+        echo "  1) Exit"
+        echo "  2) Fresh install - Reconfigure everything from scratch"
+        echo ""
+        read -p "Your choice [1]: " UPTODATE_CHOICE
+
+        case $UPTODATE_CHOICE in
+            2)
+                echo ""
+                echo -e "${BLUE}Proceeding with fresh install...${NC}"
+                echo ""
+                # Fall through to fresh install
+                ;;
+            *)
+                exit 0
+                ;;
+        esac
+        ;;
+    3)
+        # Offline - graceful fallback
+        echo -e "${YELLOW}Could not check for updates (offline or timeout).${NC}"
+        echo "Proceeding with installation..."
+        echo ""
+        # Fall through to fresh install
+        ;;
+    *)
+        # Fresh install (status 2 or unknown)
+        # Fall through to fresh install
+        ;;
+esac
+
+# ============================================================================
+# Fresh Install Flow
+# ============================================================================
 
 # Get git username
 GIT_USERNAME=$(git config user.name 2>/dev/null || echo "")
@@ -350,21 +706,37 @@ else
     echo -e "  ${GREEN}✓${NC} Created CLAUDE.md with CodeStory section"
 fi
 
-# Update .gitignore
+# Update .gitignore with all patterns
+GITIGNORE_PATTERNS=(".social-draft-*.md" ".codestory-backup-*/" ".codestory-version")
+
 if [ -f ".gitignore" ]; then
-    if grep -q "\.social-draft-" .gitignore; then
-        echo -e "  ${YELLOW}!${NC} .gitignore already has draft pattern (skipped)"
+    ADDED_PATTERNS=0
+    for pattern in "${GITIGNORE_PATTERNS[@]}"; do
+        if ! grep -qF "$pattern" .gitignore; then
+            if [ $ADDED_PATTERNS -eq 0 ]; then
+                echo "" >> .gitignore
+                echo "# CodeStory" >> .gitignore
+            fi
+            echo "$pattern" >> .gitignore
+            ADDED_PATTERNS=$((ADDED_PATTERNS + 1))
+        fi
+    done
+    if [ $ADDED_PATTERNS -gt 0 ]; then
+        echo -e "  ${GREEN}✓${NC} Added $ADDED_PATTERNS pattern(s) to .gitignore"
     else
-        echo "" >> .gitignore
-        echo "# Social media drafts (CodeStory)" >> .gitignore
-        echo ".social-draft-*.md" >> .gitignore
-        echo -e "  ${GREEN}✓${NC} Added draft pattern to .gitignore"
+        echo -e "  ${YELLOW}!${NC} .gitignore already has all patterns (skipped)"
     fi
 else
-    echo "# Social media drafts (CodeStory)" > .gitignore
-    echo ".social-draft-*.md" >> .gitignore
-    echo -e "  ${GREEN}✓${NC} Created .gitignore with draft pattern"
+    echo "# CodeStory" > .gitignore
+    for pattern in "${GITIGNORE_PATTERNS[@]}"; do
+        echo "$pattern" >> .gitignore
+    done
+    echo -e "  ${GREEN}✓${NC} Created .gitignore with CodeStory patterns"
 fi
+
+# Write version file
+write_version_file "$CODESTORY_VERSION"
+echo -e "  ${GREEN}✓${NC} Created .codestory-version (v$CODESTORY_VERSION)"
 
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════╗${NC}"
