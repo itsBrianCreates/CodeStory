@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Version and repository
-CODESTORY_VERSION="1.1.0"
+CODESTORY_VERSION="1.1.1"
 CODESTORY_REPO="https://raw.githubusercontent.com/itsBrianCreates/CodeStory/main"
 
 # ============================================================================
@@ -61,9 +61,9 @@ check_for_updates() {
         return 2  # Fresh install
     fi
 
-    # Read local version
+    # Read local version (handles both "1.0.0" and "version=1.0.0" formats)
     local local_version
-    local_version=$(head -n 1 .codestory-version 2>/dev/null | tr -d '[:space:]')
+    local_version=$(head -n 1 .codestory-version 2>/dev/null | sed 's/^version=//' | tr -d '[:space:]')
 
     if [ -z "$local_version" ]; then
         return 2  # Fresh install (corrupted version file)
