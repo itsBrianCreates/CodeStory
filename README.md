@@ -18,6 +18,16 @@ cd your-project
 bash path/to/CodeStory/codestory/install.sh
 ```
 
+## Updating
+
+To update to the latest version, run the install command again:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/itsBrianCreates/CodeStory/main/codestory/install.sh | bash
+```
+
+The installer will detect your existing installation and offer to update. Your `.social-config.md` preferences are preserved.
+
 ## How It Works
 
 ### 1. Automatic Session Tracking
