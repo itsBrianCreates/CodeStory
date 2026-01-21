@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# claude-social-posts installer
+# CodeStory installer
 # Adds social media content generation to your Claude Code sessions
 
 set -e
@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 echo ""
 echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║     claude-social-posts installer      ║${NC}"
+echo -e "${BLUE}║         CodeStory installer            ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -297,12 +297,12 @@ if [ -f ".gitignore" ]; then
         echo -e "  ${YELLOW}!${NC} .gitignore already has draft pattern (skipped)"
     else
         echo "" >> .gitignore
-        echo "# Social media drafts (claude-social-posts)" >> .gitignore
+        echo "# Social media drafts (CodeStory)" >> .gitignore
         echo ".social-draft-*.md" >> .gitignore
         echo -e "  ${GREEN}✓${NC} Added draft pattern to .gitignore"
     fi
 else
-    echo "# Social media drafts (claude-social-posts)" > .gitignore
+    echo "# Social media drafts (CodeStory)" > .gitignore
     echo ".social-draft-*.md" >> .gitignore
     echo -e "  ${GREEN}✓${NC} Created .gitignore with draft pattern"
 fi

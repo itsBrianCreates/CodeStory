@@ -1,21 +1,21 @@
-# claude-social-posts
+# CodeStory
 
-Turn your Claude Code sessions into social media content. Perfect for "build in public" developers.
+Turn your Claude Code sessions into social media content. Perfect for "build in public" developers and designers.
 
 ## Quick Install
 
 Run this in your project root:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/claude-social-posts/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/CodeStory/main/install.sh | bash
 ```
 
 Or clone and run locally:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/claude-social-posts.git
+git clone https://github.com/YOUR_USERNAME/CodeStory.git
 cd your-project
-bash path/to/claude-social-posts/install.sh
+bash path/to/CodeStory/install.sh
 ```
 
 ## How It Works
