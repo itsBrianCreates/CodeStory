@@ -132,15 +132,173 @@ EOF
 
 echo -e "  ${GREEN}✓${NC} Created .social-config.md"
 
-# AGENT-social.md content
-AGENT_CONTENT='<!-- SOCIAL-POSTS-START -->
-## Social Media Content Generation
+# Create .claude/skills/CodeStory directory
+mkdir -p .claude/skills/CodeStory
 
-This section enables automatic tracking and generation of social media content from your coding sessions. Perfect for "build in public" developers.
+# Create SKILL.md
+cat > .claude/skills/CodeStory/SKILL.md << 'EOF'
+---
+name: CodeStory
+description: Generate social media content from your coding session
+---
+
+# CodeStory: Social Media Content Generator
+
+Generate polished social media drafts from your coding session. Perfect for "build in public" developers.
+
+## When This Skill Runs
+
+This skill is triggered when:
+- User types `/CodeStory`
+- User says "CodeStory" in conversation (e.g., "run CodeStory", "let's do CodeStory")
+
+## Step 1: Gather Context
+
+Read these files and run these commands to understand what happened:
+
+**Session Notes:**
+- Read `.social-draft-{username}.md` for manual notes captured during the session
+- If the file doesn't exist or is empty, that's fine - rely on git history instead
+
+**Git Activity:**
+```bash
+git log --oneline -10
+git diff --stat HEAD~5
+```
+
+**User Preferences:**
+- Read `.social-config.md` for platform choices, tone, and length settings
+- If no config exists, assume: all platforms, casual tone, medium length
+
+## Step 2: Generate Output
+
+Create or update `socialmedia-{username}.md` with this structure:
+
+```markdown
+## Raw Notes
+
+**What happened this session:**
+- [Bullet points summarizing the work]
+- [Key moments worth sharing]
+- [Interesting technical details]
+
+**Potential angles:**
+- Hook 1: [angle that might resonate]
+- Hook 2: [different perspective]
+- Hook 3: [the human story]
+
+## Drafts
+
+### LinkedIn
+[Full draft matching configured tone and length]
+
+---
+Co-created with CodeStory
+https://github.com/itsBrianCreates/CodeStory
+
+### X/Twitter
+[Full draft respecting 280 character limit]
+
+---
+Co-created with CodeStory
+https://github.com/itsBrianCreates/CodeStory
+
+### Threads
+[Full draft, conversational tone]
+
+---
+Co-created with CodeStory
+https://github.com/itsBrianCreates/CodeStory
+
+### Bluesky
+[Full draft respecting 300 character limit]
+
+---
+Co-created with CodeStory
+https://github.com/itsBrianCreates/CodeStory
+```
+
+Only generate drafts for platforms enabled in `.social-config.md`.
+
+## Step 3: Clean Up
+
+After generating content:
+- Clear the contents of `.social-draft-{username}.md` (keep the file, empty the content)
+- The draft file is now ready for the next session
+
+## Writing Style Rules
+
+**NEVER do these:**
+- Never use hashtags (not even one)
+- Never use dashes or em-dashes in post text
+- Never use bullet points or lists in the final post
+- Never start with "I'm excited to announce" or similar corporate openers
+- Never use phrases like "game-changer", "leveraging", "synergy", or "at the end of the day"
+- Never sound like a press release
+
+**ALWAYS do these:**
+- Write conversationally, like texting a friend about your work
+- Use short sentences. They hit harder.
+- Tell a micro-story when possible (problem, struggle, solution)
+- Be specific with numbers and details (not "improved performance" but "cut load time from 3s to 400ms")
+- Match the user's configured tone (casual/professional/educational)
+- Match the user's configured length (short/medium/long)
+- If Voice Notes exist in config, try to match that personal style
+
+**Length guidelines:**
+- **Short:** 1-2 sentences. Punchy. A single observation or win.
+- **Medium:** A small paragraph. Tells a mini-story with a beginning and end.
+- **Long:** Multiple paragraphs. Detailed narrative with context and learnings.
+
+**Tone guidelines:**
+- **Casual:** Like texting a friend. Informal, maybe a bit funny, very human.
+- **Professional:** Polished but still personable. Good for LinkedIn. Not stiff.
+- **Educational:** Teaching focused. Explains the why. Shares the lesson.
+
+## Platform-Specific Notes
+
+**X/Twitter:**
+- Keep under 280 characters for single tweets
+- Can suggest thread format for longer content
+- Casual tone works best here
+
+**LinkedIn:**
+- Medium to long format performs well
+- Can be more detailed and professional
+- First line is crucial (it's the hook before "see more")
+
+**Threads:**
+- Similar to Twitter but can go longer
+- Conversational tone
+- Good for storytelling
+
+**Bluesky:**
+- 300 character limit
+- Similar vibe to early Twitter
+- Tech audience appreciates specifics
+
+## Attribution
+
+Every draft MUST end with this footer:
+
+```
+---
+Co-created with CodeStory
+https://github.com/itsBrianCreates/CodeStory
+```
+
+This attribution helps spread the word about CodeStory while giving credit to the tool.
+EOF
+
+echo -e "  ${GREEN}✓${NC} Created .claude/skills/CodeStory/SKILL.md"
+
+# CLAUDE.md content for auto-tracking and trigger word
+CLAUDE_CONTENT='<!-- CODESTORY-START -->
+## CodeStory: Auto-Tracking & Trigger
 
 ### Live Session Tracking
 
-When working on this project, maintain a running log of notable moments in `.social-draft-{GIT_USERNAME}.md`:
+While working on this project, automatically log notable moments to `.social-draft-'"$GIT_USERNAME"'.md`:
 
 **What to capture:**
 - Technical wins (clever solutions, performance improvements, clean refactors)
@@ -170,125 +328,26 @@ When working on this project, maintain a running log of notable moments in `.soc
 4:02 PM - Added rate limiting. Used a sliding window approach instead of fixed buckets. Feels cleaner.
 ```
 
-### The /social Command
+### Trigger Word
 
-When the user types `/social`, generate social media content by following these steps:
+When the user says "CodeStory" in conversation (e.g., "run CodeStory", "let'"'"'s do CodeStory", "time for CodeStory"), run the `/CodeStory` skill to generate social media content.
+<!-- CODESTORY-END -->'
 
-**Step 1: Gather Context**
-- Read the session draft file (`.social-draft-{username}.md`)
-- Review recent git activity:
-  - `git log --oneline -10` for recent commits
-  - `git diff --stat HEAD~5` for a sense of what changed
-- Read `.social-config.md` for platform and style preferences
-
-**Step 2: Generate Output**
-Create or update `socialmedia-{username}.md` with two sections:
-
-**Raw Notes Section:**
-```markdown
-## Raw Notes
-
-**What happened this session:**
-- Bullet points summarizing the work
-- Key moments worth sharing
-- Interesting technical details
-
-**Potential angles:**
-- Hook 1: [angle that might resonate]
-- Hook 2: [different perspective]
-- Hook 3: [the human story]
-```
-
-**Polished Drafts Section:**
-For each platform enabled in `.social-config.md`, create a ready-to-post draft:
-
-```markdown
-## Drafts
-
-### LinkedIn
-[Full draft here, matching configured tone and length]
-
-### X/Twitter
-[Full draft here, respecting character limits]
-```
-
-**Step 3: Clean Up**
-- Clear the session draft file contents (keep the file, empty the content)
-- The draft file is now ready for the next session
-
-### Writing Style Rules
-
-These rules apply to ALL generated content. No exceptions.
-
-**Never do these:**
-- Never use hashtags (not even one)
-- Never use dashes or em-dashes in post text
-- Never use bullet points or lists in the final post
-- Never start with "I am excited to announce" or similar corporate openers
-- Never use phrases like "game-changer", "leveraging", "synergy", or "at the end of the day"
-- Never sound like a press release
-
-**Always do these:**
-- Write conversationally, like texting a friend about your work
-- Use short sentences. They hit harder.
-- Tell a micro-story when possible (problem, struggle, solution)
-- Be specific with numbers and details (not "improved performance" but "cut load time from 3s to 400ms")
-- Match the user configured tone (casual/professional/educational)
-- Match the user configured length (short/medium/long)
-- If Voice Notes exist in config, try to match that personal style
-
-**Length guidelines:**
-- **Short:** 1-2 sentences. Punchy. A single observation or win.
-- **Medium:** A small paragraph. Tells a mini-story with a beginning and end.
-- **Long:** Multiple paragraphs. Detailed narrative with context and learnings.
-
-**Tone guidelines:**
-- **Casual:** Like texting a friend. Informal, maybe a bit funny, very human.
-- **Professional:** Polished but still personable. Good for LinkedIn. Not stiff.
-- **Educational:** Teaching focused. Explains the why. Shares the lesson.
-
-### Platform-Specific Notes
-
-**X/Twitter:**
-- Keep under 280 characters for single tweets
-- Can suggest thread format for longer content
-- Casual tone works best here
-
-**LinkedIn:**
-- Medium to long format performs well
-- Can be more detailed and professional
-- First line is crucial (it is the hook before "see more")
-
-**Threads:**
-- Similar to Twitter but can go longer
-- Conversational tone
-- Good for storytelling
-
-**Bluesky:**
-- 300 character limit
-- Similar vibe to early Twitter
-- Tech audience appreciates specifics
-
-### Configuration File
-
-The user preferences are stored in `.social-config.md` in the project root. Always read this file before generating content to respect their platform choices, tone, and length preferences.
-<!-- SOCIAL-POSTS-END -->'
-
-# Handle AGENT.md
-if [ -f "AGENT.md" ]; then
-    # Check if social posts section already exists
-    if grep -q "SOCIAL-POSTS-START" AGENT.md; then
-        echo -e "  ${YELLOW}!${NC} AGENT.md already has social posts section (skipped)"
+# Handle CLAUDE.md
+if [ -f "CLAUDE.md" ]; then
+    # Check if CodeStory section already exists
+    if grep -q "CODESTORY-START" CLAUDE.md; then
+        echo -e "  ${YELLOW}!${NC} CLAUDE.md already has CodeStory section (skipped)"
     else
-        # Append to existing AGENT.md
-        echo "" >> AGENT.md
-        echo "$AGENT_CONTENT" >> AGENT.md
-        echo -e "  ${GREEN}✓${NC} Appended social posts section to AGENT.md"
+        # Append to existing CLAUDE.md
+        echo "" >> CLAUDE.md
+        echo "$CLAUDE_CONTENT" >> CLAUDE.md
+        echo -e "  ${GREEN}✓${NC} Appended CodeStory section to CLAUDE.md"
     fi
 else
-    # Create new AGENT.md
-    echo "$AGENT_CONTENT" > AGENT.md
-    echo -e "  ${GREEN}✓${NC} Created AGENT.md with social posts section"
+    # Create new CLAUDE.md
+    echo "$CLAUDE_CONTENT" > CLAUDE.md
+    echo -e "  ${GREEN}✓${NC} Created CLAUDE.md with CodeStory section"
 fi
 
 # Update .gitignore
@@ -317,8 +376,8 @@ echo ""
 echo "  1. Claude will track notable moments as you code"
 echo "     (saved to .social-draft-$GIT_USERNAME.md)"
 echo ""
-echo "  2. When you're ready to post, just type:"
-echo -e "     ${GREEN}/social${NC}"
+echo "  2. When you're ready to post, use either:"
+echo -e "     ${GREEN}/CodeStory${NC}  or  say ${GREEN}\"CodeStory\"${NC} in chat"
 echo ""
 echo "  3. Claude will generate polished drafts in:"
 echo "     socialmedia-$GIT_USERNAME.md"
@@ -328,5 +387,5 @@ echo "  Edit .social-config.md to adjust platforms, tone, and length"
 echo "  Add Voice Notes to help Claude match your personal style"
 echo ""
 echo -e "${YELLOW}Tip:${NC} Start a Claude Code session and make some changes."
-echo "     Then run /social to see the magic happen!"
+echo "     Then run /CodeStory to see the magic happen!"
 echo ""

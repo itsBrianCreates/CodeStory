@@ -7,13 +7,13 @@ Turn your Claude Code sessions into social media content. Perfect for "build in 
 Run this in your project root:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/CodeStory/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/itsBrianCreates/CodeStory/main/install.sh | bash
 ```
 
 Or clone and run locally:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/CodeStory.git
+git clone https://github.com/itsBrianCreates/CodeStory.git
 cd your-project
 bash path/to/CodeStory/install.sh
 ```
@@ -31,12 +31,20 @@ As you work with Claude Code, it automatically tracks notable moments:
 
 These notes are saved to `.social-draft-{your-name}.md` as you work.
 
-### 2. Generate Content with `/social`
+### 2. Generate Content
 
-When you're ready to post, just type:
+When you're ready to post, use either method:
 
+**Slash command:**
 ```
-/social
+/CodeStory
+```
+
+**Natural language:**
+```
+"run CodeStory"
+"let's do CodeStory"
+"time for CodeStory"
 ```
 
 Claude will:
@@ -50,6 +58,13 @@ Your content appears in `socialmedia-{your-name}.md` with:
 
 - **Raw Notes:** Bullet points of what happened
 - **Polished Drafts:** Ready-to-post content for each platform
+
+Each draft includes an attribution footer:
+```
+---
+Co-created with CodeStory
+https://github.com/itsBrianCreates/CodeStory
+```
 
 ## Configuration
 
@@ -109,6 +124,10 @@ Here's what generated content looks like:
 > one line fix
 >
 > also refactored 400 lines of validation code down to 120 while I was in there. sometimes the best code you write is the code you delete
+>
+> ---
+> Co-created with CodeStory
+> https://github.com/itsBrianCreates/CodeStory
 
 **LinkedIn:**
 > Spent my afternoon hunting a bug that turned out to be hilariously simple.
@@ -120,6 +139,10 @@ Here's what generated content looks like:
 > While I was in there, I noticed our validation layer had gotten out of hand. 400 lines of spaghetti accumulated over months of "quick fixes." Took another hour to refactor it down to 120 lines.
 >
 > Sometimes the best code you write is the code you delete.
+>
+> ---
+> Co-created with CodeStory
+> https://github.com/itsBrianCreates/CodeStory
 
 See more examples in [examples/socialmedia-example.md](examples/socialmedia-example.md).
 
@@ -140,9 +163,13 @@ Content is generated with these rules:
 
 ## FAQ
 
-### Does it work with an existing AGENT.md?
+### What's the difference between `/CodeStory` and saying "CodeStory"?
 
-Yes. The installer appends the social posts section to your existing file. Your original content is preserved.
+They do the same thing. The slash command `/CodeStory` is the traditional way to invoke skills in Claude Code. Saying "CodeStory" in natural language (like "run CodeStory") triggers the same behavior for convenience.
+
+### Does it work with an existing CLAUDE.md?
+
+Yes. The installer appends the CodeStory section to your existing file. Your original content is preserved.
 
 ### Where are draft files stored?
 
@@ -161,16 +188,35 @@ Edit your `.social-config.md`:
 
 ### Can I manually add to the draft file?
 
-Absolutely. Open `.social-draft-{username}.md` and add notes anytime. Claude will include them in the next `/social` run.
+Absolutely. Open `.social-draft-{username}.md` and add notes anytime. Claude will include them in the next `/CodeStory` run.
+
+### What's the attribution footer?
+
+Every generated draft ends with a small footer crediting CodeStory and linking to this repo. This helps spread the word while giving credit to the tool that helped create the content.
 
 ## Files Created
 
+After installation, your project will have:
+
+```
+project/
+├── .claude/
+│   └── skills/
+│       └── CodeStory/
+│           └── SKILL.md      # /CodeStory command logic
+├── CLAUDE.md                  # Auto-tracking + "CodeStory" trigger
+├── .social-config.md          # Your preferences (platforms, tone, length)
+├── .social-draft-{name}.md    # Session notes (gitignored)
+└── socialmedia-{name}.md      # Generated content output
+```
+
 | File | Purpose |
 |------|---------|
+| `.claude/skills/CodeStory/SKILL.md` | The /CodeStory skill definition |
+| `CLAUDE.md` | Auto-tracking behavior + trigger word |
 | `.social-config.md` | Your preferences (platforms, tone, length) |
 | `.social-draft-{name}.md` | Running notes during sessions (gitignored) |
 | `socialmedia-{name}.md` | Generated content output |
-| `AGENT.md` | Claude instructions (created or appended) |
 
 ## Contributing
 
