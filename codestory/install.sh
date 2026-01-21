@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Version and repository
-CODESTORY_VERSION="1.1.2"
+CODESTORY_VERSION="1.1.3"
 CODESTORY_REPO="https://raw.githubusercontent.com/itsBrianCreates/CodeStory/main"
 
 # ============================================================================
@@ -300,9 +300,8 @@ if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
     exit 1
 fi
 
-# Check for updates
-check_for_updates
-update_status=$?
+# Check for updates (capture return code without triggering set -e)
+check_for_updates && update_status=0 || update_status=$?
 
 case $update_status in
     0)
