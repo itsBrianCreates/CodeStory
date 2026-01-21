@@ -33,10 +33,28 @@ git diff --stat HEAD~5
 
 ## Step 2: Generate Output
 
-Create or update `socialmedia-{username}.md` with this structure:
+Create or update `socialmedia-{username}.md`. **New sessions are prepended to the top** so the most recent content appears first. All session history is preserved.
+
+### File Header
+
+If the file is new or empty, start with:
 
 ```markdown
-## Raw Notes
+# Social Media Content
+```
+
+### Session Block Structure
+
+Each session gets a block with this structure (prepended to the top, after the main header):
+
+```markdown
+---
+
+## Session: {DATE} at {TIME}
+
+Generated: {DATE} at {TIME in 12-hour format, e.g., "3:45 PM"}
+
+### Raw Notes
 
 **What happened this session:**
 - [Bullet points summarizing the work]
@@ -48,36 +66,47 @@ Create or update `socialmedia-{username}.md` with this structure:
 - Hook 2: [different perspective]
 - Hook 3: [the human story]
 
-## Drafts
+### Drafts
 
-### LinkedIn
+#### LinkedIn
 [Full draft matching configured tone and length]
 
 ---
 Co-created with CodeStory
 https://github.com/itsBrianCreates/CodeStory
 
-### X/Twitter
+#### X/Twitter
 [Full draft respecting 280 character limit]
 
 ---
 Co-created with CodeStory
 https://github.com/itsBrianCreates/CodeStory
 
-### Threads
+#### Threads
 [Full draft, conversational tone]
 
 ---
 Co-created with CodeStory
 https://github.com/itsBrianCreates/CodeStory
 
-### Bluesky
+#### Bluesky
 [Full draft respecting 300 character limit]
 
 ---
 Co-created with CodeStory
 https://github.com/itsBrianCreates/CodeStory
+
+---
+
+*Copy these drafts and paste directly to your platforms.*
 ```
+
+### Important: Prepend New Sessions
+
+When running CodeStory on an existing file:
+1. Read the existing file content
+2. Insert the new session block immediately after the `# Social Media Content` header
+3. Keep all previous session blocks below (history is preserved indefinitely)
 
 Only generate drafts for platforms enabled in `.social-config.md`.
 

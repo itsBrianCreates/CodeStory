@@ -56,8 +56,11 @@ Claude will:
 
 Your content appears in `socialmedia-{your-name}.md` with:
 
+- **Session timestamp:** Date and time (12-hour format) when content was generated
 - **Raw Notes:** Bullet points of what happened
 - **Polished Drafts:** Ready-to-post content for each platform
+
+**New sessions are added to the top**, so your most recent content is always first. All session history is preserved, giving you a running log of your build-in-public journey.
 
 Each draft includes an attribution footer:
 ```
@@ -216,7 +219,7 @@ project/
 | `CLAUDE.md` | Auto-tracking behavior + trigger word |
 | `.social-config.md` | Your preferences (platforms, tone, length) |
 | `.social-draft-{name}.md` | Running notes during sessions (gitignored) |
-| `socialmedia-{name}.md` | Generated content output |
+| `socialmedia-{name}.md` | Generated content output (keeps full history, newest first) |
 
 ## Contributing
 
