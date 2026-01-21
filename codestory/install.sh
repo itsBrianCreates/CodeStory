@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Version and repository
-CODESTORY_VERSION="1.0.0"
+CODESTORY_VERSION="1.1.0"
 CODESTORY_REPO="https://raw.githubusercontent.com/itsBrianCreates/CodeStory/main"
 
 # ============================================================================
@@ -72,7 +72,7 @@ check_for_updates() {
     # Fetch remote version with timeout
     local remote_version
     remote_version=$(curl -fsSL --connect-timeout 5 --max-time 10 \
-        "${CODESTORY_REPO}/VERSION" 2>/dev/null | tr -d '[:space:]')
+        "${CODESTORY_REPO}/codestory/VERSION" 2>/dev/null | tr -d '[:space:]')
 
     if [ -z "$remote_version" ]; then
         return 3  # Offline or fetch failed
@@ -208,7 +208,7 @@ perform_update() {
     # Fetch and update SKILL.md
     local remote_skill
     remote_skill=$(curl -fsSL --connect-timeout 5 --max-time 10 \
-        "${CODESTORY_REPO}/.claude/skills/CodeStory/SKILL.md" 2>/dev/null)
+        "${CODESTORY_REPO}/codestory/.claude/skills/CodeStory/SKILL.md" 2>/dev/null)
 
     if [ -n "$remote_skill" ]; then
         update_skill_file "$remote_skill"

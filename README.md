@@ -7,7 +7,7 @@ Turn your Claude Code sessions into social media content. Perfect for "build in 
 Run this in your project root:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/itsBrianCreates/CodeStory/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/itsBrianCreates/CodeStory/main/codestory/install.sh | bash
 ```
 
 Or clone and run locally:
@@ -15,7 +15,7 @@ Or clone and run locally:
 ```bash
 git clone https://github.com/itsBrianCreates/CodeStory.git
 cd your-project
-bash path/to/CodeStory/install.sh
+bash path/to/CodeStory/codestory/install.sh
 ```
 
 ## How It Works
@@ -147,7 +147,7 @@ Here's what generated content looks like:
 > Co-created with CodeStory
 > https://github.com/itsBrianCreates/CodeStory
 
-See more examples in [examples/socialmedia-example.md](examples/socialmedia-example.md).
+See more examples in [codestory/examples/socialmedia-example.md](codestory/examples/socialmedia-example.md).
 
 ## Writing Style
 
