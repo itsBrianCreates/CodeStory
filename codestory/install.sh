@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Version and repository
-CODESTORY_VERSION="1.1.1"
+CODESTORY_VERSION="1.1.2"
 CODESTORY_REPO="https://raw.githubusercontent.com/itsBrianCreates/CodeStory/main"
 
 # ============================================================================
@@ -78,9 +78,9 @@ check_for_updates() {
         return 3  # Offline or fetch failed
     fi
 
-    # Compare versions
-    version_compare "$local_version" "$remote_version"
-    local result=$?
+    # Compare versions (capture return code without triggering set -e)
+    local result
+    version_compare "$local_version" "$remote_version" && result=0 || result=$?
 
     if [ $result -eq 2 ]; then
         # Local is older than remote
