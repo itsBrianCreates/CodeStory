@@ -166,6 +166,9 @@ Here's what generated content looks like:
 
 See more examples in [codestory/examples/socialmedia-example.md](codestory/examples/socialmedia-example.md).
 
+Want an OpenClaw handoff for X/Twitter drafts? See
+[Publishing with TweetClaw](codestory/examples/tweetclaw-openclaw-publishing.md).
+
 ## Writing Style
 
 Content is generated with these rules:
